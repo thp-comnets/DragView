@@ -21,12 +21,21 @@ package com.example.dragview;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.FloatMath;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
@@ -48,13 +57,14 @@ import java.security.PrivateKey;
  * (1) It extends MyAbsoluteLayout rather than FrameLayout; (2) it implements DragSource and DropTarget methods
  * that were done in a separate Workspace class in the Launcher.
  */
-public class DragLayer extends MyAbsoluteLayout implements DragSource, DropTarget, View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
+public class DragLayer extends MyAbsoluteLayout implements DragSource, DropTarget {
+    //    public class DragLayer extends MyAbsoluteLayout implements DragSource, DropTarget, View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
     DragController mDragController;
     private int[] lastTouchDownXY = new int[2];
-//    private int[] initalImageSizeXY = new int[2];
-    private int[] initalImageLocationXY = new int[2];
-    private  int iRelX, iRelY;
-    private int offsetX, offsetY;
+    OnClickListener mOnClickListener;
+    OnLongClickListener mOnLongClickListener;
+    OnTouchListener mOnTouchListener;
+
     /**
      * Used to create a new DragLayer from XML.
      *
@@ -67,6 +77,18 @@ public class DragLayer extends MyAbsoluteLayout implements DragSource, DropTarge
 
     public void setDragController(DragController controller) {
         mDragController = controller;
+    }
+
+    public void setOnClickListener(OnClickListener listener) {
+        mOnClickListener = listener;
+    }
+
+    public void setOnLongClickListener(OnLongClickListener listener) {
+        mOnLongClickListener = listener;
+    }
+
+    public void setOnTouchListener(OnTouchListener listener) {
+        mOnTouchListener = listener;
     }
 
     @Override
@@ -89,34 +111,25 @@ public class DragLayer extends MyAbsoluteLayout implements DragSource, DropTarge
         return mDragController.dispatchUnhandledMove(focused, direction);
     }
 
-/**
- */
-// DragSource interface methods
-
-    /**
-     * This method is called to determine if the DragSource has something to drag.
-     *
-     * @return True if there is something to drag
-     */
 
     public boolean allowDrag () {
         // In this simple demo, any view that you touch can be dragged.
         return true;
     }
 
-/**
- * setDragController
- *
- */
-
-
     public void onDropCompleted (View target)
     {
         this.removeView(target);
-//    Log.d("thp", "DragLayer2.onDropCompleted thp"+ target.getId ());
-//    toast ("DragLayer2.onDropCompleted: " + target.getId () + " Check that the view moved.");
+
     }
 
+    private Bitmap addWhiteBorder(Bitmap bmp, int borderSize) {
+        Bitmap bmpWithBorder = Bitmap.createBitmap(bmp.getWidth() + borderSize * 2, bmp.getHeight() + borderSize * 2, bmp.getConfig());
+        Canvas canvas = new Canvas(bmpWithBorder);
+        canvas.drawColor(Color.BLACK);
+        canvas.drawBitmap(bmp, borderSize, borderSize, null);
+        return bmpWithBorder;
+    }
 /**
  */
 // DropTarget interface implementation
@@ -148,35 +161,48 @@ public class DragLayer extends MyAbsoluteLayout implements DragSource, DropTarge
 
         int w = dragView.getWidth();
         int h = dragView.getHeight();
-        //new object, set default size
-        if (dd.getId() == R.id.drag_layer_templates) {
-            w = 600;
-            h = 600;
-        }
+//        //new object, set default size
+//        if (dd.getId() == R.id.drag_layer_templates) {
+//            w = 600;
+//            h = 600;
+//        }
 
         int left = x - xOffset;
         int top = y - yOffset;
-        DragLayer.LayoutParams lp = new DragLayer.LayoutParams (w, h, left, top);
+        DragLayer.LayoutParams lp;
 
         View vv = (View) source;
         // this is a new element, add it!
         if (vv.getId() == R.id.drag_layer_templates) {
 
-        View newView = null;
+            View newView = null;
             switch (v.getId()) {
                 case R.id.image_template:
-                    Bitmap mainImage = BitmapFactory.decodeResource(getResources(), R.drawable.photo1);
-                    Bitmap dragImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_open_with_white_48dp);
-                    Bitmap resizeImage = BitmapFactory.decodeResource(getResources(), R.drawable.icon_enlarge_48dp);
-                    Bitmap mergedImages = createSingleImageFromMultipleImages(mainImage, dragImage, resizeImage);
+                    Bitmap mainImage = Bitmap.createBitmap(400, 300, Bitmap.Config.ARGB_8888);
+                    mainImage.eraseColor(Color.WHITE);
+                    mainImage= addWhiteBorder(mainImage, 5);
+                    Bitmap plusImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_add_black_48dp);
+                    plusImage = Bitmap.createScaledBitmap(plusImage, 144, 144, true);
+                    Bitmap dragImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_open_with_black_48dp);
+                    dragImage = Bitmap.createScaledBitmap(dragImage, 48, 48, true);
+                    Bitmap resizeImage = BitmapFactory.decodeResource(getResources(), R.drawable.icon_enlarge_black_48dp);
+                    resizeImage = Bitmap.createScaledBitmap(resizeImage, 48, 48, true);
+                    Bitmap mergedImages = createSingleImageFromMultipleImages(mainImage, plusImage, dragImage, resizeImage);
                     ImageView newImageView = new ImageView (getContext());
-                    newImageView.setImageBitmap(mergedImages);
+//                    newImageView.setBackgroundResource(R.drawable.photo1);
+
+                    Drawable d = new BitmapDrawable(getResources(), mergedImages);
+                    h = d.getIntrinsicHeight();
+                    w = d.getIntrinsicWidth();
+                    newImageView.setBackground(d);
+                    newImageView.getAdjustViewBounds();
+//                    newImageView.setImageBitmap(mergedImages);
                     newView = newImageView;
 
                     break;
                 case R.id.text_template:
                     EditText newEditText = new EditText(getContext());
-                    newEditText.setHint("test");
+                    newEditText.setHint("Add text");
                     newEditText.setBackground(getResources().getDrawable(R.drawable.box));
                     newView = newEditText;
                     break;
@@ -193,23 +219,24 @@ public class DragLayer extends MyAbsoluteLayout implements DragSource, DropTarge
                 Toast.makeText (getContext(), "Something went wrong with adding the object", Toast.LENGTH_LONG).show ();
                 return;
             }
-
+            lp = new DragLayer.LayoutParams (w, h, left, top);
             this.addView (newView, lp);
-            newView.setOnClickListener(this);
-            newView.setOnLongClickListener(this);
-            newView.setOnTouchListener(this);
+            newView.setOnClickListener(mOnClickListener);
+            newView.setOnLongClickListener(mOnLongClickListener);
+            newView.setOnTouchListener(mOnTouchListener);
             v = newView;
         }
-
+        lp = new DragLayer.LayoutParams (w, h, left, top);
         this.updateViewLayout(v, lp);
     }
-    private Bitmap createSingleImageFromMultipleImages(Bitmap firstImage, Bitmap secondImage, Bitmap thirdImage){
+    private Bitmap createSingleImageFromMultipleImages(Bitmap firstImage, Bitmap secondImage, Bitmap thirdImage, Bitmap fourthImage){
 
         Bitmap result = Bitmap.createBitmap(firstImage.getWidth(), firstImage.getHeight(), firstImage.getConfig());
         Canvas canvas = new Canvas(result);
-        canvas.drawBitmap(firstImage, 0f, 0f, null);
-        canvas.drawBitmap(secondImage, firstImage.getWidth() - secondImage.getWidth()-20, 20, null);
-        canvas.drawBitmap(thirdImage, firstImage.getWidth() - secondImage.getWidth()-20, firstImage.getHeight() - thirdImage.getHeight() -20, null);
+        canvas.drawBitmap(firstImage, 0, 0, null);
+        canvas.drawBitmap(secondImage, firstImage.getWidth() /2 - secondImage.getWidth()/2, firstImage.getHeight()/2 - secondImage.getHeight()/2, null);
+        canvas.drawBitmap(thirdImage, firstImage.getWidth() - thirdImage.getWidth()-10, 10, null);
+        canvas.drawBitmap(fourthImage, firstImage.getWidth() - fourthImage.getWidth()-10, firstImage.getHeight() - fourthImage.getHeight() -10, null);
         return result;
     }
     public void onDragEnter(DragSource source, int x, int y, int xOffset, int yOffset,
@@ -280,151 +307,4 @@ public class DragLayer extends MyAbsoluteLayout implements DragSource, DropTarge
         Toast.makeText (getContext (), msg, Toast.LENGTH_SHORT).show ();
     }
 
-    //this is the same as in DragActivity. We need it to handle the touch events
-    public boolean startDrag (View v) {
-        Object dragInfo = v;
-        mDragController.startDrag (v, this, dragInfo, DragController.DRAG_ACTION_MOVE);
-        return true;
-    }
-
-    public int dpToPx(int dp) {
-        DisplayMetrics displayMetrics = getContext().getResources().getDisplayMetrics();
-        int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
-        return px;
-    }
-//
-//    private int getStatusBarHeight() {
-//        int result = 0;
-//        int resourceId = getContext().getResources().getIdentifier("status_bar_height", "dimen", "android");
-//        if (resourceId > 0) {
-//            result = getContext().getResources().getDimensionPixelSize(resourceId);
-//        }
-//        return result;
-//    }
-
-    @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-
-        int x = (int) motionEvent.getRawX();
-        int y = (int) motionEvent.getRawY();
-//        final int screenX = clamp((int)motionEvent.getRawX(), 0, mDisplayMetrics.widthPixels);
-//        final int screenY = clamp((int)motionEvent.getRawY(), 0, mDisplayMetrics.heightPixels);
-
-        // save the X,Y coordinates
-        if (motionEvent.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            lastTouchDownXY[0] = (int) motionEvent.getX();
-            lastTouchDownXY[1] = (int) motionEvent.getY();
-            iRelX = (int) motionEvent.getRawX();
-            iRelY = (int) motionEvent.getRawY();
-//            initalImageSizeXY[0] = pxToDp(view.getWidth());
-//            initalImageSizeXY[1] = pxToDp(view.getHeight());
-            view.getLocationOnScreen(initalImageLocationXY);
-
-
-//             Log.d("thp", "ontouch" + initalImageLocationXY[0] + " " +initalImageLocationXY[1] +" " + getStatusBarHeight());
-        }
-
-        int width= view.getLayoutParams().width;
-        int height = view.getLayoutParams().height;
-
-
-
-        if (lastTouchDownXY[0] > view.getWidth() - 200 && lastTouchDownXY[1] > view.getHeight() - 200) {
-            if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
-
-//                offsetX =  (initalImageLocationXY [0] - (int) view.getX());     // subtract out this View's relative location within its parent View...
-//                offsetY =  (initalImageLocationXY[1] - (int) view.getY());
-//                x -= offsetX;                                  // remove parent View's screen offset (calc'd above)
-//                y -= offsetY;
-//                x -= lastTouchDownXY[0];                                     // remove stored touch offset
-//                y -= lastTouchDownXY[1];
-
-//                view.setX(iRelX);
-//                view.setY(iRelY);
-
-//                WindowManager.LayoutParams lp = mLayoutParams;
-//                int w = 200;//dpToPx(x) - initalImageLocationXY[0];
-//                int h =  200;//dpToPx(y) - initalImageLocationXY[1];
-
-//                DragLayer.LayoutParams lp = new DragLayer.LayoutParams(w, h, 0, 0);
-//                lp.x = x - lastTouchDownXY[0] - initalImageLocationXY[0];
-//                lp.y = y - lastTouchDownXY[1] - initalImageLocationXY[1];
-//                this.updateViewLayout(view, lp);
-
-
-//                if ((initalImageSizeXY[0] - x) > 0 ) {
-//                    view.getLayoutParams().width = initalImageSizeXY[0] - initalImageLocationXY[0] + initalImageSizeXY[0] - x ;
-                int w = (int) motionEvent.getX();//dpToPx(x) - initalImageLocationXY[0];
-                int h =  (int) motionEvent.getY();
-                int left = (int)   view.getX();
-                int top = (int) view.getY();
-                DragLayer.LayoutParams lp = new DragLayer.LayoutParams (w, h, left, top);
-                this.updateViewLayout(view, lp);
-//                    view.getLayoutParams().width =  x ;
-//                    view.getLayoutParams().height = y;
-////
-//                    view.requestLayout();
-//                }
-                Log.d("thp", "ontouch " + y + " " +   view.getX());
-            }
-
-
-//            return false;
-        }
-        // If we are configured to start only on a long click, we are not going to handle any events here.
-        boolean mLongClickStartsDrag = true; //thp: FIXME
-        if (mLongClickStartsDrag) return false;
-//
-//
-//        boolean handledHere = false;
-//
-//        final int action = motionEvent.getAction();
-//
-//        // In the situation where a long click is not needed to initiate a drag, simply start on the down event.
-//        if (action == MotionEvent.ACTION_DOWN) {
-//            handledHere = startDrag(view);
-//        }
-//
-//        return handledHere;
-        return false;
-    }
-
-    @Override
-    public void onClick(View view) {
-
-    }
-
-    @Override
-    public boolean onLongClick(View view) {
-        float x = lastTouchDownXY[0];
-        float y = lastTouchDownXY[1];
-
-        if (x > (view.getWidth() - 150) && y < 150) {
-            Log.d("thp", "onLongClick" + x + " " + y + " " + view.getWidth());
-            return startDrag(view);
-        }
-//        if (x > view.getWidth() - 150 && y > (view.getHeight() - 150)) {
-//
-//
-//
-//            Log.d("thp", "onLongClick" + x + " " + y + " " + view.getWidth());
-//            return false;
-//        }
-//        return startDrag (view);
-        return false;
-    }
-    private static int clamp(int val, int min, int max) {
-        if (val < min) {
-            return min;
-        } else if (val >= max) {
-            return max - 1;
-        } else {
-            return val;
-        }
-    }
-    public int pxToDp(int px) {
-        DisplayMetrics displayMetrics = getContext().getResources().getDisplayMetrics();
-        int dp = Math.round(px / (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
-        return dp;
-    }
 }

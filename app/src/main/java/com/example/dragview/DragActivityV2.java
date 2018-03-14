@@ -51,6 +51,7 @@ private boolean mLongClickStartsDrag = true;    // If true, it takes a long clic
 private DeleteZone mDeleteZone;
 
 public static final boolean Debugging = false;
+private int[] lastTouchDownXY = new int[2];
 
 protected void onCreate(Bundle savedInstanceState)
 {
@@ -75,29 +76,40 @@ public boolean onCreateOptionsMenu (Menu menu)
 
 public void onClick(View v) 
 {
-    mDragController.printTargets();
-    if (mLongClickStartsDrag) {
-       // Tell the user that it takes a long click to start dragging.
-       toast ("Press and hold to drag an image.");
-    }
+//    Log.d("thp", "onclick in mainactivity");
+//    mDragController.printTargets();
+//    if (mLongClickStartsDrag) {
+//       // Tell the user that it takes a long click to start dragging.
+//       toast ("Press and hold to drag an image.");
+//    }
 }
 
 
 public boolean onLongClick(View v) 
 {
-    if (mLongClickStartsDrag) {
-       
-        //trace ("onLongClick in view: " + v + " touchMode: " + v.isInTouchMode ());
 
-        // Make sure the drag was started by a long press as opposed to a long click.
-        // (Note: I got this from the Workspace object in the Android Launcher code. 
-        //  I think it is here to ensure that the device is still in touch mode as we start the drag operation.)
-        if (!v.isInTouchMode()) {
-           toast ("isInTouchMode returned false. Try touching the view again.");
-           return false;
-        }
-        return startDrag (v);
+
+    float x = lastTouchDownXY[0];
+    float y = lastTouchDownXY[1];
+    Log.d("thp", "onLongClick" + x + " " + y + " " + v.getWidth());
+    if (x > (v.getWidth() - 150) && y < 150) {
+        Log.d("thp", "onLongClick" + x + " " + y + " " + v.getWidth());
+        return startDrag(v);
     }
+
+//    if (mLongClickStartsDrag) {
+//
+//        //trace ("onLongClick in view: " + v + " touchMode: " + v.isInTouchMode ());
+//
+//        // Make sure the drag was started by a long press as opposed to a long click.
+//        // (Note: I got this from the Workspace object in the Android Launcher code.
+//        //  I think it is here to ensure that the device is still in touch mode as we start the drag operation.)
+//        if (!v.isInTouchMode()) {
+//           toast ("isInTouchMode returned false. Try touching the view again.");
+//           return false;
+//        }
+//        return startDrag (v);
+//    }
 
     // If we get here, return false to indicate that we have not taken care of the event.
     return false;
@@ -179,19 +191,41 @@ public boolean onOptionsItemSelected (MenuItem item)
 
 public boolean onTouch (View v, MotionEvent ev)
 {
-    // If we are configured to start only on a long click, we are not going to handle any events here.
-    if (mLongClickStartsDrag) return false;
 
-    boolean handledHere = false;
-
-    final int action = ev.getAction();
-    Log.d ("thp", "onTouch old");
-    // In the situation where a long click is not needed to initiate a drag, simply start on the down event.
-    if (action == MotionEvent.ACTION_DOWN) {
-       handledHere = startDrag (v);
+    //this is a new object that hasn't been added to the dragLayer yet
+    if (v.getId() == R.id.image_template || v.getId() == R.id.text_template || v.getId() == R.id.box_template) {
+        return false;
     }
 
-    return handledHere;
+    if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
+        lastTouchDownXY[0] = (int) ev.getX();
+        lastTouchDownXY[1] = (int) ev.getY();
+    }
+
+    if (lastTouchDownXY[0] > v.getWidth() - 200 && lastTouchDownXY[1] > v.getHeight() - 200) {
+        if (ev.getAction() == MotionEvent.ACTION_MOVE) {
+            int w = (int) ev.getX();
+            int h =  (int) ev.getY();
+            int left = (int)   v.getX();
+            int top = (int) v.getY();
+            DragLayer.LayoutParams lp = new DragLayer.LayoutParams (w, h, left, top);
+            mDragLayer.updateViewLayout(v, lp);
+        }
+    }
+    return  false;
+//    // If we are configured to start only on a long click, we are not going to handle any events here.
+//    if (mLongClickStartsDrag) return false;
+//
+//    boolean handledHere = false;
+//
+//    final int action = ev.getAction();
+//    Log.d ("thp", "onTouch old");
+//    // In the situation where a long click is not needed to initiate a drag, simply start on the down event.
+//    if (action == MotionEvent.ACTION_DOWN) {
+//       handledHere = startDrag (v);
+//    }
+//
+//    return handledHere;
 }
 
 public boolean startDrag (View v)
@@ -220,6 +254,9 @@ private void setupViews()
 
     mDragLayer = (DragLayer) findViewById(R.id.drag_layer);
     mDragLayer.setDragController(dragController);
+    mDragLayer.setOnClickListener(this);
+    mDragLayer.setOnLongClickListener(this);
+    mDragLayer.setOnTouchListener(this);
 //    dragController.setDragLayer(mDragLayer);
     dragController.addDropTarget (mDragLayer);
 

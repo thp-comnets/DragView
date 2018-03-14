@@ -35,10 +35,7 @@ import android.widget.RemoteViews.RemoteView;
  * children. Absolute layouts are less flexible and harder to maintain than
  * other types of layouts without absolute positioning.
  *
- * <p><strong>XML attributes</strong></p> <p> See {@link
- * android.R.styleable#ViewGroup ViewGroup Attributes}, {@link
- * android.R.styleable#View View Attributes}</p>
- * 
+ *
  * <p>Note: This class is a clone of AbsoluteLayout, which is now deprecated.
  */
 
