@@ -45,7 +45,6 @@ private DragLayer mDragLayer;             // The ViewGroup that supports drag-dr
 
     private DragController mDragController2;
 private DragLayer mDragLayer2;
-private DropSpot mSpot2;                  // The DropSpot that can be turned on and off via the menu.
 private boolean mLongClickStartsDrag = true;    // If true, it takes a long click to start the drag operation.
                                                 // Otherwise, any touch event starts a drag.
 private DeleteZone mDeleteZone;
@@ -87,8 +86,6 @@ public void onClick(View v)
 
 public boolean onLongClick(View v) 
 {
-
-
     float x = lastTouchDownXY[0];
     float y = lastTouchDownXY[1];
     Log.d("thp", "onLongClick" + x + " " + y + " " + v.getWidth());
@@ -141,43 +138,43 @@ public boolean onOptionsItemSelected (MenuItem item)
     //mPaint.setXfermode(null);
     //mPaint.setAlpha(0xFF);
 
-    switch (item.getItemId()) {
-      case ENABLE_S2_MENU_ID:
-
-          List<View> views = getAllChildrenBFS(mDragLayer);
-          int[] viewCoordinates = new int[2];
-          for (View v: views) {
-              v.getLocationOnScreen(viewCoordinates);
-              Log.e("thp", v.getClass().getName() + " x " + viewCoordinates[0] + " y " + viewCoordinates[1]);
-          }
-//            if (mSpot2 != null) mSpot2.setDragLayer (mDragLayer);
-            return true;
-      case DISABLE_S2_MENU_ID:
-            if (mSpot2 != null) mSpot2.setDragLayer (null);
-            return true;
-      case ADD_OBJECT_MENU_ID:
-            // Add a new object to the DragLayer and see if it can be dragged around.
-            ImageView newView = new ImageView (this);
-            newView.setImageResource (R.drawable.hello);
-            int w = 200;
-            int h = 200;
-            int left = 80;
-            int top = 100;
-            DragLayer.LayoutParams lp = new DragLayer.LayoutParams (w, h, left, top);
-            mDragLayer.addView (newView, lp);
-
-//          Log.d("thp", "DragLayer2.adddd thp"+ newView.getId ());
-            newView.setOnClickListener(this);
-            newView.setOnLongClickListener(this);
-            newView.setOnTouchListener(this);
-            return true;
-      case CHANGE_TOUCH_MODE_MENU_ID:
-            mLongClickStartsDrag = !mLongClickStartsDrag;
-            String message = mLongClickStartsDrag ? "Changed touch mode. Drag now starts on long touch (click)." 
-                                                  : "Changed touch mode. Drag now starts on touch (click).";
-            Toast.makeText (getApplicationContext(), message, Toast.LENGTH_LONG).show ();
-            return true;
-    }
+//    switch (item.getItemId()) {
+//      case ENABLE_S2_MENU_ID:
+//
+//          List<View> views = getAllChildrenBFS(mDragLayer);
+//          int[] viewCoordinates = new int[2];
+//          for (View v: views) {
+//              v.getLocationOnScreen(viewCoordinates);
+//              Log.e("thp", v.getClass().getName() + " x " + viewCoordinates[0] + " y " + viewCoordinates[1]);
+//          }
+////            if (mSpot2 != null) mSpot2.setDragLayer (mDragLayer);
+//            return true;
+//      case DISABLE_S2_MENU_ID:
+//            if (mSpot2 != null) mSpot2.setDragLayer (null);
+//            return true;
+//      case ADD_OBJECT_MENU_ID:
+//            // Add a new object to the DragLayer and see if it can be dragged around.
+//            ImageView newView = new ImageView (this);
+//            newView.setImageResource (R.drawable.hello);
+//            int w = 200;
+//            int h = 200;
+//            int left = 80;
+//            int top = 100;
+//            DragLayer.LayoutParams lp = new DragLayer.LayoutParams (w, h, left, top);
+//            mDragLayer.addView (newView, lp);
+//
+////          Log.d("thp", "DragLayer2.adddd thp"+ newView.getId ());
+//            newView.setOnClickListener(this);
+//            newView.setOnLongClickListener(this);
+//            newView.setOnTouchListener(this);
+//            return true;
+//      case CHANGE_TOUCH_MODE_MENU_ID:
+//            mLongClickStartsDrag = !mLongClickStartsDrag;
+//            String message = mLongClickStartsDrag ? "Changed touch mode. Drag now starts on long touch (click)."
+//                                                  : "Changed touch mode. Drag now starts on touch (click).";
+//            Toast.makeText (getApplicationContext(), message, Toast.LENGTH_LONG).show ();
+//            return true;
+//    }
 
     return super.onOptionsItemSelected(item);
 }
