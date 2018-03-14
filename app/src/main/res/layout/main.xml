@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/linear_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_centerHorizontal="true"
+    android:orientation="vertical">
+
+
+
+    <com.example.dragview.DragLayer
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/drag_layer"
+        android:layout_weight="0.8"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <!--<ImageView-->
+            <!--android:id="@+id/Image1"-->
+            <!--android:layout_width="200px"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_margin="20px"-->
+            <!--android:layout_weight="50"-->
+            <!--android:adjustViewBounds="true"-->
+            <!--android:src="@drawable/photo1" />-->
+
+        <!--<ImageView-->
+            <!--android:id="@+id/Image2"-->
+            <!--android:layout_width="200px"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_weight="50"-->
+            <!--android:adjustViewBounds="true"-->
+            <!--android:src="@drawable/photo2" />-->
+
+    </com.example.dragview.DragLayer>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+
+       >
+        <com.example.dragview.DragLayer
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/drag_layer_templates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+            android:id="@+id/image_template"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:padding="3dp"
+            android:adjustViewBounds="true"
+            android:src="@drawable/ic_photo_size_select_actual_black_48dp" />
+            <ImageView
+                android:id="@+id/image_template_fixed"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:padding="3dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_photo_size_select_actual_black_48dp" />
+
+            <ImageView
+                android:id="@+id/text_template"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:padding="3dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_subject_black_48dp" />
+            <ImageView
+                android:id="@+id/text_template_fixed"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:padding="3dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_subject_black_48dp" />
+
+            <ImageView
+                android:id="@+id/box_template"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:padding="3dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_check_box_outline_blank_black_24dp" />
+            <ImageView
+                android:id="@+id/box_template_fixed"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:padding="3dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/ic_check_box_outline_blank_black_24dp" />
+        </com.example.dragview.DragLayer>
+
+        <com.example.dragview.DeleteZone
+            android:id="@+id/delete_zone_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_alignParentRight="true"
+            android:padding="3dp"
+            android:src="@drawable/ic_delete_forever_black_48dp" />
+    </RelativeLayout>
+</LinearLayout>
